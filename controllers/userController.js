@@ -1,4 +1,5 @@
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import ApiError from "../error/ApiError.js";
 import { User } from "../models/user.js";
 
@@ -222,4 +223,58 @@ export const getUserInfo = async (req, res, next) => {
     console.error("Ошибка получения информации о пользователе:", error);
     next(ApiError.internal("Ошибка при получении данных пользователя"));
   }
+};
+
+// Функция авторизации пользователя
+export const login = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ where: { email } });
+    if (!user) return next(ApiError.badRequest("Пользователь не найден"));
+
+    const isValid = await bcrypt.compare(password, user.password);
+    if (!isValid) return next(ApiError.badRequest("Неверный пароль"));
+
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+      expiresIn: "24h",
+    });
+
+    res.json({ token });
+  } catch (error) {
+    next(ApiError.internal("Ошибка авторизации"));
+  }
+};
+
+// Функция проверки статуса аутентификации
+export const checkAuth = (req, res) => {
+  const user = req.user;
+
+  const token = jwt.sign(
+    {
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      userType: user.userType,
+      avatar: user.avatar,
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: "24h" }
+  );
+
+  return res.json({
+    id: user.id,
+    email: user.email,
+    username: user.username,
+    avatar: user.avatar,
+    isPro: user.userType === "pro",
+    token,
+  });
+};
+
+// Функция выхода пользователя
+export const logout = (req, res) => {
+  // Так как токен не хранится на сервере, просто возвращаем успешный ответ
+  // Удаление токена будет производиться на клиенте
+  res.json({ message: "Вы успешно вышли из системы" });
 };

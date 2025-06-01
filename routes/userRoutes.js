@@ -1,5 +1,12 @@
 import { Router } from "express";
-import { registration, getUserInfo } from "../controllers/userController.js";
+import {
+  registration,
+  getUserInfo,
+  login,
+  checkAuth,
+  logout,
+} from "../controllers/userController.js";
+import { authenticateToken } from "../middleware/authMiddleware.js";
 import upload, {
   handleMulterError,
   checkDefaultAvatar,
@@ -15,6 +22,12 @@ router.post(
   registration
 );
 
+// Маршруты для авторизации (должны идти ПЕРЕД /:id)
+router.post("/users/login", login);
+router.get("/users/login", authenticateToken, checkAuth);
+router.delete("/users/logout", logout);
+
+// Общий маршрут с параметром (должен быть ПОСЛЕДНИМ)
 router.get("/users/:id", getUserInfo);
 
 export default router;

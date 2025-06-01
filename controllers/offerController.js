@@ -115,3 +115,45 @@ export async function createOffer(req, res, next) {
     );
   }
 }
+
+// Получение списка избранных предложений
+export const getFavoriteOffers = async (req, res, next) => {
+  try {
+    const offers = await Offer.findAll({
+      where: { isFavorite: true },
+      include: { model: User, as: "author" },
+    });
+
+    const adaptedOffers = offers.map((offer) => adaptOfferToClient(offer));
+    res.json(adaptedOffers);
+  } catch (error) {
+    next(ApiError.internal("Ошибка при получении избранных предложений"));
+  }
+};
+
+// Добавление/удаление предложения в/из избранное
+export const toggleFavorite = async (req, res, next) => {
+  try {
+    const { offerId, status } = req.params;
+    const isFavorite = status === "1";
+
+    const offer = await Offer.findByPk(offerId);
+    if (!offer) {
+      return next(ApiError.badRequest("Предложение не найдено"));
+    }
+
+    await offer.update({ isFavorite });
+
+    const updatedOffer = await Offer.findByPk(offerId, {
+      include: { model: User, as: "author" },
+    });
+
+    const adaptedOffer = adaptFullOfferToClient(
+      updatedOffer,
+      updatedOffer.author
+    );
+    res.json(adaptedOffer);
+  } catch (error) {
+    next(ApiError.internal("Ошибка при изменении статуса избранного"));
+  }
+};

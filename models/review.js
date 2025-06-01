@@ -12,7 +12,7 @@ Review.init(
       allowNull: false,
       validate: { len: [5, 1024] },
     },
-    publishdate: {
+    publishDate: {
       type: DataTypes.DATE,
       allowNull: false,
       defaultValue: DataTypes.NOW,
@@ -30,8 +30,16 @@ Review.init(
   }
 );
 
-// Связи
-Review.belongsTo(User, { as: "author", foreignKey: { allowNull: false } });
-Review.belongsTo(Offer, { foreignKey: { allowNull: false } });
+// Связи с camelCase именами колонок
+Review.belongsTo(User, {
+  as: "author",
+  foreignKey: "authorId",
+  targetKey: "id",
+});
+
+Review.belongsTo(Offer, {
+  foreignKey: "OfferId",
+  targetKey: "id",
+});
 
 export { Review };
