@@ -1,9 +1,20 @@
 import { Router } from "express";
-import { registration } from "../controllers/userController.js";
-import upload from "../middleware/upload.js";
+import { registration, getUserInfo } from "../controllers/userController.js";
+import upload, {
+  handleMulterError,
+  checkDefaultAvatar,
+} from "../middleware/upload.js";
 
 const router = Router();
 
-router.post("/users/register", upload.single("avatar"), registration);
+router.post(
+  "/users/register",
+  checkDefaultAvatar,
+  upload.single("avatar"),
+  handleMulterError,
+  registration
+);
+
+router.get("/users/:id", getUserInfo);
 
 export default router;
