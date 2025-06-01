@@ -1,66 +1,28 @@
 # Rental Service Backend
 
-## Описание
+REST API для сервиса аренды жилья.
 
-Серверная часть приложения для аренды недвижимости, разработанная в рамках Лабораторной работы 2.
+## Установка и запуск
 
-## Структура проекта
-
-```
-server/
-├── config/
-│   └── database.js          # Конфигурация подключения к БД
-├── controllers/
-│   └── offerController.js   # Контроллеры для работы с предложениями
-├── models/
-│   ├── user.js             # Модель пользователя
-│   ├── offer.js            # Модель предложения
-│   └── review.js           # Модель отзыва
-├── routes/
-│   ├── index.js            # Основной роутер
-│   └── offerRoutes.js      # Маршруты для предложений
-├── index.js                # Основной файл приложения
-├── test-server.js          # Тестовый сервер без БД
-├── package.json
-└── .env                    # Переменные окружения
-```
-
-## Установка и настройка
-
-### 1. Установка зависимостей
+1. Установите зависимости:
 
 ```bash
-cd server
 npm install
 ```
 
-### 2. Настройка базы данных
-
-Создайте файл `.env` в папке `server` со следующим содержимым:
+2. Создайте файл .env и настройте переменные окружения:
 
 ```
+HOST=http://localhost
 PORT=5000
 DB_NAME=rental_service
 DB_USER=postgres
 DB_PASSWORD=your_password
 DB_HOST=localhost
+DB_PORT=5432
 ```
 
-### 3. Настройка PostgreSQL
-
-- Установите PostgreSQL
-- Создайте базу данных `rental_service`
-- Замените `your_password` на ваш пароль от PostgreSQL
-
-## Запуск приложения
-
-### Тестовый сервер (без БД)
-
-```bash
-node test-server.js
-```
-
-### Основной сервер (с БД)
+3. Запустите сервер в режиме разработки:
 
 ```bash
 npm run dev
@@ -68,62 +30,170 @@ npm run dev
 
 ## API Endpoints
 
-### GET /api/offers
+### Пользователи
 
-Получение всех предложений по аренде
+#### POST /api/users/register
 
-**Пример запроса:**
+Регистрация нового пользователя
 
-```
-GET http://localhost:5000/api/offers
-```
+**Тело запроса (FormData):**
 
-**Пример ответа:**
+- `email` (string) - Email пользователя
+- `password` (string) - Пароль
+- `username` (string) - Имя пользователя
+- `userType` (string) - Тип пользователя ("normal" или "pro")
+- `avatar` (file) - Файл аватара
+
+**Ответ:**
 
 ```json
-[]
+{
+  "user": {
+    "id": 1,
+    "email": "user@example.com",
+    "username": "John Doe",
+    "avatarUrl": "/static/avatar.jpg",
+    "isPro": false
+  }
+}
 ```
 
-## Тестирование
+### Предложения
 
-Используйте Postman для тестирования API:
+#### GET /api/offers
 
-1. Создайте новый запрос
-2. Выберите метод GET
-3. Введите URL: `http://localhost:5000/api/offers`
-4. Нажмите Send
+Получение всех предложений
 
-## Модели данных
+**Ответ:**
 
-### User (Пользователь)
+```json
+[
+  {
+    "id": "1",
+    "title": "Beautiful apartment",
+    "type": "apartment",
+    "price": 120,
+    "city": {
+      "name": "Paris",
+      "location": {
+        "latitude": 48.8566,
+        "longitude": 2.3522,
+        "zoom": 13
+      }
+    },
+    "location": {
+      "latitude": 48.8566,
+      "longitude": 2.3522
+    },
+    "isFavorite": false,
+    "isPremium": true,
+    "rating": 4.5,
+    "previewImage": "http://localhost:5000/static/image.jpg"
+  }
+]
+```
 
-- username: строка (1-15 символов)
-- email: строка (уникальный, валидный email)
-- password: строка
-- userType: enum ('normal', 'pro')
-- avatar: строка (необязательное)
+#### GET /api/offers/:id
 
-### Offer (Предложение)
+Получение полной информации о предложении
 
-- title: строка (10-100 символов)
-- description: строка (20-1024 символа)
-- city: enum (Paris, Cologne, Brussels, Amsterdam, Hamburg, Dusseldorf)
-- previewImage: строка
-- photos: массив строк
-- isPremium: boolean
-- isFavorite: boolean
-- rating: decimal (1-5)
-- type: enum (apartment, house, room, hotel)
-- rooms: integer (1-8)
-- guests: integer (1-10)
-- price: integer (100-100000)
-- latitude, longitude: float
+**Ответ:**
 
-### Review (Отзыв)
+```json
+{
+  "id": "1",
+  "title": "Beautiful apartment",
+  "description": "A wonderful place to stay...",
+  "type": "apartment",
+  "price": 120,
+  "city": {
+    "name": "Paris",
+    "location": {
+      "latitude": 48.8566,
+      "longitude": 2.3522,
+      "zoom": 13
+    }
+  },
+  "location": {
+    "latitude": 48.8566,
+    "longitude": 2.3522
+  },
+  "isFavorite": false,
+  "isPremium": true,
+  "rating": 4.5,
+  "previewImage": "http://localhost:5000/static/image.jpg",
+  "images": ["http://localhost:5000/static/image1.jpg"],
+  "maxAdults": 4,
+  "maxChildren": 0,
+  "bedrooms": 2,
+  "goods": ["WiFi", "Kitchen"],
+  "host": {
+    "id": 1,
+    "name": "John Doe",
+    "avatarUrl": "http://localhost:5000/static/avatar.jpg",
+    "isPro": false
+  }
+}
+```
 
-- text: строка (5-1024 символа)
-- rating: integer (1-5)
-- publishDate: дата
+#### POST /api/offers
+
+Создание нового предложения
+
+**Тело запроса (FormData):**
+
+- `title` (string) - Название
+- `description` (string) - Описание
+- `city` (string) - Город
+- `type` (string) - Тип ("apartment", "house", "room", "hotel")
+- `price` (number) - Цена
+- `rooms` (number) - Количество комнат
+- `guests` (number) - Количество гостей
+- `latitude` (number) - Широта
+- `longitude` (number) - Долгота
+- `isPremium` (boolean) - Премиум
+- `isFavorite` (boolean) - В избранном
+- `rating` (number) - Рейтинг
+- `features` (string/array) - Удобства
+- `userId` (number) - ID автора
+- `previewImage` (file) - Превью изображение
+- `photos` (files) - Дополнительные фото
+
+## Обработка ошибок
+
+API использует централизованную систему обработки ошибок:
+
+- `400 Bad Request` - Некорректные данные запроса
+- `401 Unauthorized` - Не авторизован
+- `403 Forbidden` - Доступ запрещен
+- `500 Internal Server Error` - Внутренняя ошибка сервера
+
+Формат ответа при ошибке:
+
+```json
+{
+  "message": "Описание ошибки"
+}
+```
+
+## Структура проекта
+
+```
+server/
+├── adapters/           # Адаптеры для преобразования данных
+├── config/            # Конфигурация БД
+├── controllers/       # Контроллеры
+├── error/            # Обработка ошибок
+├── middleware/       # Middleware
+├── models/           # Модели Sequelize
+├── routes/           # Маршруты
+├── static/           # Статические файлы
+└── index.js          # Основной файл
+```
+
+## Описание
+
+Серверная часть приложения для аренды недвижимости, разработанная в рамках Лабораторной работы 2.
 
 ## Технологии
 
