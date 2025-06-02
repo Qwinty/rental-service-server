@@ -1,4 +1,4 @@
-/static
+# /static (commented out to include images in deployment)
 /mock-avatars
 repomix-output.xml
 
