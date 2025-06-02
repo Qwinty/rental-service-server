@@ -1,6 +1,5 @@
 import { Model, DataTypes } from "sequelize";
 import sequelize from "../config/database.js";
-import { User } from "./user.js";
 
 class Offer extends Model {}
 
@@ -44,10 +43,6 @@ Offer.init(
       type: DataTypes.BOOLEAN,
       allowNull: false,
     },
-    isFavorite: {
-      type: DataTypes.BOOLEAN,
-      allowNull: false,
-    },
     rating: {
       type: DataTypes.DECIMAL(2, 1),
       allowNull: false,
@@ -70,7 +65,7 @@ Offer.init(
     price: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      validate: { min: 100, max: 100000 },
+      validate: { min: 50, max: 100000 },
     },
     features: {
       type: DataTypes.ARRAY(
@@ -81,7 +76,18 @@ Offer.init(
           "Baby seat",
           "Washer",
           "Towels",
-          "Fridge"
+          "Fridge",
+          "Wi-Fi",
+          "Kitchen",
+          "Washing machine",
+          "Heating",
+          "Parking",
+          "Balcony",
+          "TV",
+          "Dishwasher",
+          "Microwave",
+          "Shared kitchen",
+          "Iron"
         )
       ),
       allowNull: false,
@@ -102,7 +108,7 @@ Offer.init(
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: User,
+        model: "users",
         key: "id",
       },
     },
@@ -114,7 +120,6 @@ Offer.init(
   }
 );
 
-// Связь с пользователем
-Offer.belongsTo(User, { as: "author", foreignKey: "authorId" });
+// Associations will be set up in a separate file to avoid circular dependencies
 
 export { Offer };

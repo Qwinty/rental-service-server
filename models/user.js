@@ -8,6 +8,7 @@ User.init(
     username: {
       type: DataTypes.STRING,
       allowNull: false,
+      unique: true,
       validate: {
         len: [1, 15],
       },
@@ -28,6 +29,7 @@ User.init(
       type: DataTypes.ENUM,
       values: ["normal", "pro"],
       allowNull: false,
+      defaultValue: "normal",
     },
     avatar: {
       type: DataTypes.STRING,
@@ -40,5 +42,7 @@ User.init(
     tableName: "users",
   }
 );
+
+// Associations will be set up in a separate file to avoid circular dependencies
 
 export { User };

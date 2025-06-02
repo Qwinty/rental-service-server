@@ -1,28 +1,27 @@
 import jwt from "jsonwebtoken";
+import { User } from "../models/associations.js";
 import ApiError from "../error/ApiError.js";
-import { User } from "../models/user.js";
 
-const authenticateToken = async (req, res, next) => {
+export const authenticateToken = async (req, res, next) => {
   try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return next(ApiError.unauthorized("Нет токена"));
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.split(" ")[1];
+
+    if (!token) {
+      return res.status(401).json({ error: "Access token required" });
     }
 
-    const token = authHeader.split(" ")[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
     const user = await User.findByPk(decoded.id);
+
     if (!user) {
-      return next(ApiError.unauthorized("Пользователь не найден"));
+      return res.status(401).json({ error: "Invalid token" });
     }
 
-    // Можно сохранить пользователя в req.user для использования дальше
     req.user = user;
     next();
   } catch (error) {
-    next(ApiError.unauthorized("Недействительный токен"));
+    console.error("Auth middleware error:", error);
+    return res.status(403).json({ error: "Invalid token" });
   }
 };
-
-export { authenticateToken };

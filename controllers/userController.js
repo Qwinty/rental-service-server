@@ -1,7 +1,7 @@
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { User } from "../models/associations.js";
 import ApiError from "../error/ApiError.js";
-import { User } from "../models/user.js";
 
 // Функция для валидации email
 const isValidEmail = (email) => {
@@ -240,7 +240,17 @@ export const login = async (req, res, next) => {
       expiresIn: "24h",
     });
 
-    res.json({ token });
+    res.json({
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        avatarUrl: user.avatar,
+        isPro: user.userType === "pro",
+        createdAt: user.createdAt,
+      },
+    });
   } catch (error) {
     next(ApiError.internal("Ошибка авторизации"));
   }

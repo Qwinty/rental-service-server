@@ -17,8 +17,11 @@ const adaptReviewToClient = (review) => {
         ? review.publishDate.toISOString()
         : new Date(review.publishDate).toISOString(),
     user: {
+      id: review.author?.id || 0,
       name: review.author?.username || "Unknown",
-      avatarUrl: prepareUrl(review.author?.avatar || ""),
+      avatarUrl: prepareUrl(
+        review.author?.avatar || "/static/defaults/default-avatar.jpg"
+      ),
       isPro: review.author?.userType === "pro",
     },
   };

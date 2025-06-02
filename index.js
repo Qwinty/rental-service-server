@@ -9,9 +9,8 @@ import sequelize from "./config/database.js";
 import router from "./routes/index.js";
 import errorHandler from "./middleware/ErrorHandlingMiddleware.js";
 
-// Импорт моделей для создания таблиц
-import { User } from "./models/user.js";
-import { Offer } from "./models/offer.js";
+// Импорт моделей с ассоциациями для создания таблиц
+import { User, Offer, Favorite } from "./models/associations.js";
 import { Review } from "./models/review.js";
 
 const __filename = fileURLToPath(import.meta.url);

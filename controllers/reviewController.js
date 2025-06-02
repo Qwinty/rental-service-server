@@ -19,38 +19,74 @@ const addReview = async (req, res, next) => {
     if (!comment || !rating) {
       return next(ApiError.badRequest("Комментарий и рейтинг обязательны"));
     }
-
-    if (rating < 1 || rating > 5) {
-      return next(ApiError.badRequest("Рейтинг должен быть от 1 до 5"));
+    if (typeof rating !== "number" || rating < 1 || rating > 5) {
+      return next(ApiError.badRequest("Рейтинг должен быть числом от 1 до 5"));
+    }
+    if (
+      typeof comment !== "string" ||
+      comment.length < 40 ||
+      comment.length > 1024
+    ) {
+      // Example length constraints
+      return next(
+        ApiError.badRequest(
+          "Комментарий должен быть строкой от 40 до 1024 символов"
+        )
+      );
     }
 
-    const review = await Review.create({
+    const createdReview = await Review.create({
       text: comment,
       rating,
       publishDate: new Date(),
       authorId: userId,
-      OfferId: offerId,
+      OfferId: parseInt(offerId, 10), // Ensure offerId is an integer
     });
 
-    console.log("Отзыв создан успешно:", review.toJSON());
+    // Fetch the created review along with its author to ensure all data is present for adaptation
+    const newReviewWithAuthor = await Review.findByPk(createdReview.id, {
+      include: [
+        {
+          model: User,
+          as: "author", // This alias must match the one used in adaptReviewToClient if it expects review.author
+          attributes: ["id", "username", "avatar", "userType"],
+        },
+      ],
+    });
 
-    res.status(201).json({ success: true, review });
+    if (!newReviewWithAuthor) {
+      return next(
+        ApiError.internal("Не удалось получить созданный отзыв для адаптации")
+      );
+    }
+
+    const adaptedReview = adaptReviewToClient(newReviewWithAuthor);
+
+    console.log("Отзыв создан и адаптирован успешно:", adaptedReview);
+
+    res.status(201).json(adaptedReview); // Send the adapted review directly
   } catch (error) {
     console.error("=== Ошибка при добавлении отзыва ===");
     console.error("Error name:", error.name);
     console.error("Error message:", error.message);
     console.error("Error stack:", error.stack);
-    console.error("Sequelize errors:", error.errors);
 
+    // Check for Sequelize validation errors
     if (error.name === "SequelizeValidationError") {
       const errors = error.errors.map((err) => err.message).join(", ");
       return next(ApiError.badRequest(`Ошибки валидации: ${errors}`));
     }
-
+    // Check for foreign key constraint errors (e.g., invalid offerId or userId)
     if (error.name === "SequelizeForeignKeyConstraintError") {
       return next(
-        ApiError.badRequest("Некорректный ID пользователя или предложения")
+        ApiError.badRequest(
+          "Некорректный ID пользователя или предложения. Убедитесь, что они существуют."
+        )
       );
+    }
+    // Catch errors if offerId is not a valid number for parseInt
+    if (error instanceof TypeError && error.message.includes("parseInt")) {
+      return next(ApiError.badRequest("ID предложения должен быть числом."));
     }
 
     next(ApiError.internal(`Ошибка при добавлении отзыва: ${error.message}`));
@@ -73,15 +109,17 @@ const getReviewsByOfferId = async (req, res, next) => {
           attributes: ["id", "username", "avatar", "userType"],
         },
       ],
+      order: [["publishDate", "DESC"]], // Sort reviews by date, newest first
     });
 
     console.log(`Найдено отзывов: ${reviews.length}`);
-    console.log(
-      "Отзывы:",
-      reviews.map((r) => r.toJSON())
-    );
+    // console.log(
+    //   "Отзывы (raw):",
+    //   reviews.map((r) => r.toJSON())
+    // );
 
     const adaptedReviews = reviews.map((review) => adaptReviewToClient(review));
+    // console.log("Отзывы (adapted):", adaptedReviews);
 
     res.json(adaptedReviews);
   } catch (error) {
@@ -89,11 +127,12 @@ const getReviewsByOfferId = async (req, res, next) => {
     console.error("Error name:", error.name);
     console.error("Error message:", error.message);
     console.error("Error stack:", error.stack);
-    console.error("Sequelize errors:", error.errors);
 
     if (error.name === "SequelizeEagerLoadingError") {
       return next(
-        ApiError.internal("Ошибка загрузки связанных данных (пользователи)")
+        ApiError.internal(
+          "Ошибка загрузки связанных данных (пользователи) при получении отзывов"
+        )
       );
     }
 
