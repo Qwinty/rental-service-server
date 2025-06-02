@@ -10,7 +10,7 @@ User.init(
       allowNull: false,
       unique: true,
       validate: {
-        len: [1, 15],
+        len: [2, 50],
       },
     },
     email: {

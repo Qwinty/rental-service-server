@@ -168,9 +168,15 @@ export const registration = async (req, res, next) => {
       `Новый пользователь зарегистрирован: ${user.email} (ID: ${user.id})`
     );
 
-    // Успешный ответ
+    // Генерируем JWT токен для автоматического входа после регистрации
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+      expiresIn: "24h",
+    });
+
+    // Успешный ответ с токеном
     res.status(201).json({
       message: "Пользователь успешно зарегистрирован",
+      token,
       user: {
         id: user.id,
         email: user.email,

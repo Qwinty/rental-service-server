@@ -1,4 +1,6 @@
 /static
+/mock-avatars
+repomix-output.xml
 
 # Dependencies
 node_modules/

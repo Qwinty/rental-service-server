@@ -7,14 +7,17 @@ import {
   addFavorite,
   removeFavorite,
 } from "../controllers/offerController.js";
-import { authenticateToken } from "../middleware/authMiddleware.js";
+import {
+  authenticateToken,
+  optionalAuth,
+} from "../middleware/authMiddleware.js";
 import upload from "../middleware/upload.js";
 
 const router = Router();
 
-router.get("/offers", getAllOffers);
-router.get("/offers/favorites/list", getFavoriteOffers);
-router.get("/offers/:id", getFullOffer);
+router.get("/offers", optionalAuth, getAllOffers);
+router.get("/offers/favorites/list", authenticateToken, getFavoriteOffers);
+router.get("/offers/:id", optionalAuth, getFullOffer);
 router.post(
   "/offers",
   authenticateToken,
