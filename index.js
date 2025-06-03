@@ -30,7 +30,7 @@ app.use(express.json());
 // Раздача статических файлов
 app.use("/static", express.static(path.resolve(__dirname, "static")));
 
-// Health check endpoint для Railway
+// Health check endpoint для Railway (moved to root level)
 app.get("/health", (req, res) => {
   res
     .status(200)
