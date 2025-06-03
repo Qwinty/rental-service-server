@@ -3,10 +3,17 @@
   "version": "1.0.0",
   "main": "index.js",
   "type": "module",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js",
     "dev": "nodemon index.js",
-    "add-test-data": "node add-test-data.js"
+    "add-test-data": "node add-test-data.js",
+    "railway:build": "npm install --production",
+    "railway:deploy": "npm start"
   },
   "keywords": [],
   "author": "",
