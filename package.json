@@ -11,6 +11,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js",
     "dev": "nodemon index.js",
+    "deploy": "railway up --detach",
     "add-test-data": "node add-test-data.js",
     "railway:build": "npm install --production",
     "railway:deploy": "npm start"

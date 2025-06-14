@@ -47,7 +47,7 @@ The project is built with Node.js 18 + Express, uses PostgreSQL via Sequelize, a
 3. **Create a `.env` file** in the project root:
 
    ```env
-   HOST=http://localhost
+   HOST=http://localhost:5000
    PORT=5000
 
    DB_NAME=rental_service
